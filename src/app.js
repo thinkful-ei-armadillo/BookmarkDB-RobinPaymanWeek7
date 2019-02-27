@@ -7,7 +7,6 @@ const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 const bookmarkRouter = require('./bookmark/bookmark-router');
 
-
 const app = express();
 
 const morganOption = NODE_ENV === 'production' ? 'tiny' : 'common';
@@ -16,7 +15,7 @@ app.use(morgan(morganOption));
 app.use(helmet());
 app.use(cors());
 
-app.use(function validateBearerToken(req, res, next) {
+/*app.use(function validateBearerToken(req, res, next) {
   const apiToken = process.env.API_KEY;
   const authToken = req.get('Authorization');
 
@@ -26,7 +25,7 @@ app.use(function validateBearerToken(req, res, next) {
   }
   // move to the next middleware
   next();
-});
+});*/
 
 app.use(bookmarkRouter);
 

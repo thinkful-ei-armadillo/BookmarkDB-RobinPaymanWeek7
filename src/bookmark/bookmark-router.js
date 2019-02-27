@@ -3,16 +3,20 @@ const logger = require('../logger');
 const uuid = require('uuid/v4');
 const bookmarkRouter = express.Router();
 const bodyParser = express.json();
-
-const { bookmark } = require('../store');
+const BookmarksService = require('../bookmarks-service');
 
 bookmarkRouter
-  .route('/bookmark')
-  .get((req, res) => {
-    res.json(bookmark);
+  .route('/bookmarks')
+  .get((req, res, next) => {
+    const knexInstance = req.app.get('db');
+    BookmarksService.getAllBookmarks(knexInstance)
+      .then(bookmarks => {
+        res.json(bookmarks);
+      })
+      .catch(next);
   })
   .post(bodyParser, (req, res) => {
-    const { title, content, url, rating=0 } = req.body;
+    const { title, content, url, rating = 0 } = req.body;
 
     if (!title) {
       logger.error('Title is required');
@@ -66,7 +70,6 @@ bookmarkRouter
       logger.error(`bookmark with id ${id} not found.`);
       return res.status(404).send('Not found');
     }
-
 
     bookmark.splice(bookmarkIndex, 1);
 
