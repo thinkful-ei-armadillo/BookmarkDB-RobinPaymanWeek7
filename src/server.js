@@ -2,14 +2,13 @@ const app = require('./app');
 const { PORT, DB_URL } = require('./config');
 const knex = require('knex');
 
-
 const db = knex({
   client: 'pg',
   connection: {
     host: '127.0.0.1',
-    user: 'dunder_mifflin',
-    password: '083768',
-    database: 'bookmarks'}
+    user: 'dunder_mifflin_admin',
+    database: 'bookmarks'
+  }
 });
 
 app.set('db', db);
