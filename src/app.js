@@ -1,12 +1,12 @@
 require('dotenv').config();
-const winston = require('winston');
+const logger = require('./logger');
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
-const cardRouter = require('./card/card-router');
-const listRouter = require('./list/list-router');
+const bookmarkRouter = require('./bookmark/bookmark-router');
+
 
 const app = express();
 
@@ -28,12 +28,7 @@ app.use(function validateBearerToken(req, res, next) {
   next();
 });
 
-app.use(cardRouter);
-app.use(listRouter);
-
-app.get('/', (req, res) => {
-  res.send('Hello, world!');
-});
+app.use(bookmarkRouter);
 
 app.use(function errorHandler(error, req, res, next) {
   let response;

@@ -1,17 +1,13 @@
-const cards = [
+const bookmark = [
   {
     id: 1,
     title: 'Task One',
-    content: 'This is card one'
+    content: 'This is card one',
+    url: 'google.com',
+    rating: 5
   }
 ];
 
-const lists = [
-  {
-    id: 1,
-    header: 'List One',
-    cardIds: [1]
-  }
-];
 
-module.exports = { cards, lists };
+
+module.exports = {  bookmark };
