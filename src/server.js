@@ -1,3 +1,4 @@
+require('dotenv').config();
 const app = require('./app');
 const { PORT, DB_URL } = require('./config');
 const knex = require('knex');
@@ -7,6 +8,7 @@ const db = knex({
   connection: {
     host: '127.0.0.1',
     user: 'dunder_mifflin_admin',
+    password: process.env.MIGRATION_DB_PASS,
     database: 'bookmarks'
   }
 });

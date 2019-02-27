@@ -36,7 +36,7 @@ bookmarkRouter
 
     if (rating < 0 || rating > 5) {
       return res.status(400).json({
-        error: { message: `Rating must be between 0-5` }
+        error: { message: 'Rating must be between 0-5' }
       });
     }
 
@@ -53,15 +53,33 @@ bookmarkRouter
   });
 bookmarkRouter
   .route('/:id')
-  .get((req, res, next) => {
-    const { id } = req.params;
-    // const bookmark1 = bookmark.find(c => c.id == id);
-    const knexInstance = req.app.get('db');
-    BookmarksService.getById(knexInstance, id)
+  .all((req, res, next) => {
+    BookmarksService.getById(
+      req.app.get('db'),
+      req.params.id
+    )
       .then(bookmark => {
-        res.json(bookmark);
+        if (!bookmark) {
+          return res.status(404).json({
+            error: { message: 'bookmark doesn\'t exist' }
+          });
+        }
+        res.bookmark = bookmark; // save the article for the next middleware
+        next(); // don't forget to call next so the next middleware happens!
       })
       .catch(next);
+  })
+  .get((req, res, next) => {
+    res.json(serializeBookmark(res.bookmark));
+    // .get((req, res, next) => {
+    //   const { id } = req.params;
+    //   // const bookmark1 = bookmark.find(c => c.id == id);
+    //   const knexInstance = req.app.get('db');
+    //   BookmarksService.getById(knexInstance, id)
+    //     .then(bookmark => {
+    //       res.json(bookmark);
+    //     })
+    //     .catch(next);
     // make sure we found a bookmark
     // if (!bookmark1) {
     //   logger.error(`bookmark with id ${id} not found.`);
@@ -72,6 +90,13 @@ bookmarkRouter
   })
   .delete((req, res, next) => {
     const { id } = req.params;
+    BookmarksService.deleteBookmark(
+      req.app.get('db'),
+      req.params.id)
+      .then(numRowsAffected => {
+        res.status(204).end();
+      })
+      .catch(next);
   });
 
 module.exports = bookmarkRouter;

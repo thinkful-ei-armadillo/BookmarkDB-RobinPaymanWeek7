@@ -15,8 +15,9 @@ describe('Bookmark Endpoints', function() {
       client: 'pg',
       connection: {
         host: '127.0.0.1',
-        user: 'dunder_mifflin_admin',
-        database: 'bookmarks-test'
+        user: 'dunder_mifflin',
+        password: process.env.MIGRATION_DB_PASS,
+        database: 'bookmark_test'
       }
     });
     app.set('db', db);
@@ -27,8 +28,8 @@ describe('Bookmark Endpoints', function() {
 
   before('clean the table', () => db('bookmarks').truncate());
 
-  describe(`POST /bookmarks`, () => {
-    it(`creates a bookmark, responding with 201 and the new bookmark`, function() {
+  describe('POST /bookmarks', () => {
+    it('creates a bookmark, responding with 201 and the new bookmark', function() {
       const newBookmark = {
         title: 'Hey',
         description: 'Test new article content...',
@@ -54,7 +55,7 @@ describe('Bookmark Endpoints', function() {
         );
     });
 
-    it(`responds with 400 for trying to create bookmark with rating of 6`, function() {
+    it('responds with 400 for trying to create bookmark with rating of 6', function() {
       const newBookmark = {
         title: 'Hey',
         description: 'Test new article content...',
@@ -67,7 +68,7 @@ describe('Bookmark Endpoints', function() {
         .expect(400);
     });
 
-    it(`responds with 400 for trying to create bookmark with rating of -1`, function() {
+    it('responds with 400 for trying to create bookmark with rating of -1', function() {
       const newBookmark = {
         title: 'Hey',
         description: 'Test new article content...',
@@ -104,7 +105,7 @@ describe('Bookmark Endpoints', function() {
     it('removes XSS attack content from response', () => {
       const { maliciousBookmark, expectedBookmark } = makeMaliciousBookmark();
       return supertest(app)
-        .post(`/bookmarks`)
+        .post('/bookmarks')
         .send(maliciousBookmark)
         .expect(201)
         .expect(res => {
@@ -135,11 +136,44 @@ describe('Bookmark Endpoints', function() {
         .expect(200, expectedBookmark);
     });
   });
-  context(`Given no bookmarks`, () => {
-    it(`responds with 200 and an empty list`, () => {
+  context('Given no bookmarks', () => {
+    it('responds with 200 and an empty list', () => {
       return supertest(app)
         .get('/bookmarks')
         .expect(200, []);
+    });
+  });
+  describe('DELETE /bookmarks/:bookmark_id', () => {
+    context('Given no bookmark', () => {
+      it('responds with 404', () => {
+        const bookmarkId = 123456;
+        return supertest(app)
+          .delete(`/bookmarks/${bookmarkId}`)
+          .expect(404, { error: { message: 'bookmark doesn\'t exist' } });
+      });
+    });
+
+    context('Given there are articles in the database', () => {
+      const testBookmarks = makeBookmarkArray();
+
+      beforeEach('insert bookmark', () => {
+        return db
+          .into('bookmarks')
+          .insert(testBookmarks);
+      });
+
+      it('responds with 204 and removes the bookmark', () => {
+        const idToRemove = 2;
+        const expectedBookmark = testBookmarks.filter(bookmark => bookmark.id !== idToRemove);
+        return supertest(app)
+          .delete(`/bookmarks/${idToRemove}`)
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get('/bookmarks')
+              .expect(expectedBookmark)
+          );
+      });
     });
   });
 });
